@@ -1,0 +1,55 @@
+version: "3"
+
+services:
+    # PHP + Apache
+    web:
+        container_name: my_blog
+        build:
+            context: ./docker
+            dockerfile: Dockerfile
+        ports:
+            - 8080:80
+        privileged: true
+        volumes:
+            - ./my_blog:/var/www/html:delegated
+            - web_vendor:/var/www/html/vendor
+            - web_storage_app:/var/www/html/storage/app
+            - web_storage_framework:/var/www/html/storage/framework
+            - web_storage_debugbar:/var/www/html/storage/debugbar
+            - web_node_modules:/var/www/html/node_modules
+
+    # PostgreSQL
+    db:
+        container_name: mydb
+        image: postgres:12
+        environment:
+            POSTGRES_DB: mydb
+            POSTGRES_USER: admin
+            POSTGRES_PASSWORD: root
+            PGDATA: /var/lib/postgresql/data/pgdata
+        volumes:
+            - db_data:/var/lib/postgresql/data
+            - ./docker/postgres/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+        ports:
+            - "6034:5432"
+
+    # phpmyAdmin
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        links:
+            - db
+        environment:
+            PMA_HOST: mysql_host
+            PMA_PORT: 3306
+            PMA_ARBITRARY: 1
+            restart: always
+        ports:
+            - 8082:80
+volumes:
+    db_data:
+    web_node_modules:
+    web_storage_app:
+    web_storage_framework:
+    web_storage_debugbar:
+    web_vendor:
